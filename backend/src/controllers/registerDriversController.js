@@ -3,23 +3,31 @@ import crypto from "crypto"; // Generar codigo aleatorio
 import jsonwebtoken from "jsonwebtoken"; // Token
 import bcryptjs from "bcryptjs"; // Encriptar
 
-import customerModel from "../models/customers.js";
+import driverModel from "../models/drivers.js";
 
 import { config } from "../../config.js";
 
 // Array de funciones
-const registerCustomerController = {};
+const registerDriverController = {};
 
-registerCustomerController.register = async (req, res) => {
+registerDriverController.register = async (req, res) => {
   // 1 - Solicitar los Datos
-  const { name, lastName, email, password, phone, address, isVerified } =
-    req.body;
+  const {
+    name,
+    lastName,
+    licenseNumber,
+    phone,
+    email,
+    password,
+    isActive,
+    isVerified,
+  } = req.body;
 
   try {
     // Validar que el correo no exista en la base de datos
-    const existsCustomer = await customerModel.findOne({ email });
-    if (existsCustomer) {
-      return res.status(400).json({ message: "Customer already exists" });
+    const existsDriver = await driverModel.findOne({ email });
+    if (existsDriver) {
+      return res.status(400).json({ message: "Driver already exists" });
     }
 
     // Encriptar la contraseña
@@ -35,10 +43,11 @@ registerCustomerController.register = async (req, res) => {
         randomNumber,
         name,
         lastName,
+        licenseNumber,
+        phone,
         email,
         password: passwordHashed,
-        phone,
-        address,
+        isActive,
         isVerified,
       },
       // 2- Secret Key
@@ -85,7 +94,7 @@ registerCustomerController.register = async (req, res) => {
 };
 
 // VERIFICAR EL CÓDIGO QUE ACABAMOS DE ENVIAR
-registerCustomerController.verifyCode = async (req, res) => {
+registerDriverController.verifyCode = async (req, res) => {
   try {
     //Solicitamos el código que escribieron en el frontend
     const { verificationCodeRequest } = req.body;
@@ -99,10 +108,11 @@ registerCustomerController.verifyCode = async (req, res) => {
       randomNumber: storedCode,
       name,
       lastName,
+      licenseNumber,
+      phone,
       email,
       password,
-      phone,
-      address,
+      isActive,
       isVerified,
     } = decoded;
 
@@ -112,27 +122,28 @@ registerCustomerController.verifyCode = async (req, res) => {
     }
 
     // Sí todo está bien, y el usuario escribe el código, lo registramos en la BD
-    const NewCustomer = new customerModel({
+    const NewDriver = new driverModel({
       name,
       lastName,
+      licenseNumber,
+      phone,
       email,
       password,
-      phone,
-      address,
+      isActive,
       isVerified: true,
     });
 
-    await NewCustomer.save();
+    await NewDriver.save();
 
     // Limpiar la Cookie
     res.clearCookie("registrationCookie");
 
     // Retornamos la respuesta del registro exitoso
-    return res.status(200).json({ message: "Customer registered" });
+    return res.status(200).json({ message: "Driver registered" });
   } catch (error) {
     console.log("error " + error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-export default registerCustomerController;
+export default registerDriverController;
