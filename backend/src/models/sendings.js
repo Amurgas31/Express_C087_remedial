@@ -45,4 +45,4 @@ const sendingsSchema = new Schema(
   },
 );
 
-export default model("Routes", routesSchema);
+export default model("Sendings", sendingsSchema);
